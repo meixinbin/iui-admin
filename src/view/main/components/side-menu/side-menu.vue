@@ -15,9 +15,9 @@
     </Menu>
     <div class="menu-collapsed" v-show="collapsed" :list="menuList">
       <template v-for="item in menuList">
-        <collapsed-menu v-if="item.children && item.children.length > 1" @on-click="handleSelect" hide-title :root-icon-size="rootIconSize" :icon-size="iconSize" :theme="theme" :parent-item="item" :key="`drop-menu-${item.name}`"></collapsed-menu>
+        <collapsed-menu :open-names="openedNames" v-if="item.children && item.children.length > 1" @on-click="handleSelect" hide-title :root-icon-size="rootIconSize" :icon-size="iconSize" :theme="theme" :parent-item="item" :key="`drop-menu-${item.name}`" :active-name="activeName"></collapsed-menu>
         <Tooltip transfer v-else :content="(item.meta && item.meta.title) || (item.children && item.children[0] && item.children[0].meta.title)" placement="right" :key="`drop-menu-${item.name}`">
-          <a @click="handleSelect(getNameOrHref(item, true))" class="drop-menu-a" :style="{textAlign: 'center'}"><common-icon :size="rootIconSize" :color="textColor" :type="item.icon || (item.children && item.children[0].icon)"/></a>
+          <a @click="handleSelect(getNameOrHref(item, true))" class="drop-menu-a" :style="{textAlign: 'center',background:activeBackground(item.name)}"><common-icon :size="rootIconSize" :color="textColor" :type="item.icon || (item.children && item.children[0].icon)"/></a>
         </Tooltip>
       </template>
     </div>
@@ -83,11 +83,19 @@ export default {
       return this.$route.matched.map(item => item.name).filter(item => item !== name)
     },
     updateOpenName (name) {
-      if (name === 'home') this.openedNames = []
-      else this.openedNames = this.getOpenedNamesByActiveName(name)
+      if (name === 'home') {
+        this.openedNames = []
+      }else {
+        this.openedNames = this.getOpenedNamesByActiveName(name)
+      }
     },
     handleCollpasedChange (state) {
       this.$emit('on-coll-change', state)
+    },
+    activeBackground (name) {
+      if(this.openedNames.length>0 && this.openedNames[0] == name){
+        return '#348EED'
+      }
     }
   },
   computed: {
@@ -99,9 +107,6 @@ export default {
     activeName (name) {
       if (this.accordion) this.openedNames = this.getOpenedNamesByActiveName(name)
       else this.openedNames = getUnion(this.openedNames, this.getOpenedNamesByActiveName(name))
-    },
-    openNames (newNames) {
-      this.openedNames = newNames
     },
     openedNames () {
       this.$nextTick(() => {
